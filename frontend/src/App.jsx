@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { create } from "zustand";
@@ -13,32 +14,34 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import PropTypes from "prop-types";
-import darkImg from "@/assets/download.jpg";
+// import darkImg from "@/assets/download.jpg";
 import lightImg from "@/assets/list-of-2018-korean-language-films.jpg";
+import { useVoteStore, MAX_SELECTIONS } from "./store/useVoteStore";
+import { useNavigate } from "react-router-dom";
 
-const MAX_SELECTIONS = 3;
+// const MAX_SELECTIONS = 3;
 
-// Zustand store
-const useVoteStore = create((set) => ({
-  options: [],
-  setOptions: (options) => set({ options }),
-  selectedOptions: [],
-  toggleOption: (id) =>
-    set((state) => {
-      if (state.selectedOptions.includes(id)) {
-        return {
-          selectedOptions: state.selectedOptions.filter(
-            (optionId) => optionId !== id
-          ),
-        };
-      } else if (state.selectedOptions.length < MAX_SELECTIONS) {
-        return { selectedOptions: [...state.selectedOptions, id] };
-      }
-      return state;
-    }),
-  jwtToken: null,
-  setJwtToken: (token) => set({ jwtToken: token }),
-}));
+// // Zustand store
+// const useVoteStore = create((set) => ({
+//   options: [],
+//   setOptions: (options) => set({ options }),
+//   selectedOptions: [],
+//   toggleOption: (id) =>
+//     set((state) => {
+//       if (state.selectedOptions.includes(id)) {
+//         return {
+//           selectedOptions: state.selectedOptions.filter(
+//             (optionId) => optionId !== id
+//           ),
+//         };
+//       } else if (state.selectedOptions.length < MAX_SELECTIONS) {
+//         return { selectedOptions: [...state.selectedOptions, id] };
+//       }
+//       return state;
+//     }),
+//   jwtToken: null,
+//   setJwtToken: (token) => set({ jwtToken: token }),
+// }));
 
 const OptionItem = ({ option, index }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -162,6 +165,7 @@ const VotingPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   // const [darkMode, setDarkMode] = useState(false);
   const [errorAlert, setErrorAlert] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchJwtToken = async () => {
@@ -175,7 +179,8 @@ const VotingPage = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:5000/admin/auth/" + uniqueLink
+          "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/admin/auth/" +
+            uniqueLink
         );
         if (!response.data.success) {
           console.error("Error fetching JWT token:", response.data.message);
@@ -183,6 +188,7 @@ const VotingPage = () => {
           return;
         }
         setJwtToken(response.data.token);
+        console.log("JWT token fetched successfully", response.data.token);
       } catch (error) {
         setErrorAlert("Error fetching JWT token");
         console.error("Error fetching JWT token:", error);
@@ -190,7 +196,7 @@ const VotingPage = () => {
     };
 
     fetchJwtToken();
-  }, []);
+  }, [setJwtToken]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -199,14 +205,22 @@ const VotingPage = () => {
       }
 
       try {
-        const response = await axios.get("http://localhost:5000/name", {
-          headers: {
-            token: jwtToken,
-          },
-        });
+        const response = await axios.get(
+          "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/name",
+          {
+            headers: {
+              token: jwtToken,
+            },
+          }
+        );
 
         // setOptions(mockOptions);
-        setOptions(response.data);
+        if (!response.data.success) {
+          console.error("Error fetching options:", response.data.message);
+          setErrorAlert("Error fetching options");
+          return;
+        }
+        setOptions(response.data.names);
       } catch (error) {
         console.error("Error fetching options:", error);
       }
@@ -219,8 +233,8 @@ const VotingPage = () => {
     if (selectedOptions.length === MAX_SELECTIONS) {
       console.log(`${selectedOptions}`);
       setShowAlert(true);
-      // const timer = setTimeout(() => setShowAlert(false), 3400);
-      // return () => clearTimeout(timer);
+      const timer = setTimeout(() => setShowAlert(false), 3400);
+      return () => clearTimeout(timer);
     }
   }, [selectedOptions]);
 
@@ -236,9 +250,10 @@ const VotingPage = () => {
     if (!jwtToken) {
       setErrorAlert("Not authorized. Please use the unique link");
     }
+    let response = null;
     try {
-      await axios.post(
-        "http://localhost:5000/name/vote",
+      response = await axios.post(
+        "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/name/vote",
         { options: selectedOptions },
         {
           headers: {
@@ -246,8 +261,18 @@ const VotingPage = () => {
           },
         }
       );
+      if (!response.data.success) {
+        setErrorAlert("Error submitting vote", response.data.message);
+        console.error("Error submitting vote:", response.data.message);
+        return;
+      }
       console.log("Selected options submitted successfully", selectedOptions);
+      navigate("/vote_success", { state: { responseData: response.data } });
+
+      // console.log("Selected options submitted successfully", selectedOptions);
+      // navigate("/vote_success");
     } catch (error) {
+      // setErrorAlert("Error submitting vote");
       console.error("Error submitting vote:", error);
     }
   };

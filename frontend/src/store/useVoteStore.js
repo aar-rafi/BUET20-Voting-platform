@@ -11,15 +11,16 @@ export const useVoteStore = create(
       jwtToken: null,
 
       setOptions: (options) => set({ options }),
-      toggleOption: (id) =>
+      toggleOption: (id, count) =>
         set((state) => {
+          const maxSelectionsAllowed = MAX_SELECTIONS - count;
           if (state.selectedOptions.includes(id)) {
             return {
               selectedOptions: state.selectedOptions.filter(
                 (optionId) => optionId !== id
               ),
             };
-          } else if (state.selectedOptions.length < MAX_SELECTIONS) {
+          } else if (state.selectedOptions.length < maxSelectionsAllowed) {
             return { selectedOptions: [...state.selectedOptions, id] };
           }
           return state;

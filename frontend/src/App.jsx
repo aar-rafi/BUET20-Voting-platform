@@ -43,7 +43,7 @@ import { useNavigate } from "react-router-dom";
 //   setJwtToken: (token) => set({ jwtToken: token }),
 // }));
 
-const OptionItem = ({ option, index }) => {
+const OptionItem = ({ option, index, count }) => {
   const [isOpen, setIsOpen] = useState(false);
   const toggleOption = useVoteStore((state) => state.toggleOption);
   const selectedOptions = useVoteStore((state) => state.selectedOptions);
@@ -60,7 +60,7 @@ const OptionItem = ({ option, index }) => {
         className={`flex items-center justify-between w-full p-4 ${
           isSelected
             ? "bg-emerald-400/70"
-            : "bg-cyan-100-400/30 hover:bg-white/50 cursor-pointer"
+            : "bg-cyan-100/30 hover:bg-white/50 cursor-pointer"
         } rounded-t-lg`}
       >
         <span className="flex-1 text-lg font-semibold text-gray-800 dark:text-gray-500">
@@ -74,7 +74,7 @@ const OptionItem = ({ option, index }) => {
         <p className="text-gray-700 dark:text-gray-300">{option.meaning}</p>
         <Button
           onClick={() => {
-            toggleOption(option.id);
+            toggleOption(option.id, count);
           }}
           className={`mt-4 ${
             isSelected
@@ -92,6 +92,7 @@ const OptionItem = ({ option, index }) => {
 OptionItem.propTypes = {
   option: PropTypes.object.isRequired,
   index: PropTypes.number.isRequired,
+  count: PropTypes.number.isRequired,
 };
 
 const SideScroll = ({ totalOptions }) => {
@@ -108,11 +109,11 @@ const SideScroll = ({ totalOptions }) => {
   };
 
   return (
-    <div className="fixed right-0 top-1/2 transform -translate-y-1/2 bg-blue-400/30 backdrop-blur-md p-2 rounded-l-md shadow-lg flex flex-col">
+    <div className="fixed right-0 top-1/2 transform -translate-y-1/2 bg-blue-400/30 backdrop-blur-md p-1 md:p-1 lg:p-3 rounded-l-md shadow-lg flex flex-col">
       {scrollNumbers.map((number) => (
         <button
           key={number}
-          className="text-sm cursor-pointer hover:bg-white/50 p-0.5 text-gray-800 dark:text-gray-200 focus:outline-none"
+          className="text-sm cursor-pointer bg-transparent hover:bg-white/50 p-0.5 text-gray-800 dark:text-gray-200 focus:outline-none"
           onClick={() => handleScroll(number)}
         >
           {number}
@@ -165,6 +166,7 @@ const VotingPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   // const [darkMode, setDarkMode] = useState(false);
   const [errorAlert, setErrorAlert] = useState(null);
+  const [count, setCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -179,7 +181,7 @@ const VotingPage = () => {
 
       try {
         const response = await axios.get(
-          "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/admin/auth/" +
+          "https://voting-app-backend-updated.livelytree-3847346b.southeastasia.azurecontainerapps.io/admin/auth/" +
             uniqueLink
         );
         if (!response.data.success) {
@@ -188,7 +190,12 @@ const VotingPage = () => {
           return;
         }
         setJwtToken(response.data.token);
-        console.log("JWT token fetched successfully", response.data.token);
+        setCount(response.data.count);
+        console.log(
+          "JWT token fetched successfully",
+          response.data.token,
+          response.data.count
+        );
       } catch (error) {
         setErrorAlert("Error fetching JWT token");
         console.error("Error fetching JWT token:", error);
@@ -206,7 +213,7 @@ const VotingPage = () => {
 
       try {
         const response = await axios.get(
-          "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/name",
+          "https://voting-app-backend-updated.livelytree-3847346b.southeastasia.azurecontainerapps.io/name",
           {
             headers: {
               token: jwtToken,
@@ -230,7 +237,7 @@ const VotingPage = () => {
   }, [jwtToken]);
 
   useEffect(() => {
-    if (selectedOptions.length === MAX_SELECTIONS) {
+    if (selectedOptions.length === MAX_SELECTIONS - count) {
       console.log(`${selectedOptions}`);
       setShowAlert(true);
       const timer = setTimeout(() => setShowAlert(false), 3400);
@@ -253,7 +260,7 @@ const VotingPage = () => {
     let response = null;
     try {
       response = await axios.post(
-        "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/name/vote",
+        "https://voting-app-backend-updated.livelytree-3847346b.southeastasia.azurecontainerapps.io/name/vote",
         { options: selectedOptions },
         {
           headers: {
@@ -277,7 +284,7 @@ const VotingPage = () => {
     }
   };
 
-  const progress = (selectedOptions.length / MAX_SELECTIONS) * 100;
+  const progress = (selectedOptions.length / (MAX_SELECTIONS - count)) * 100;
 
   return (
     <div
@@ -289,9 +296,9 @@ const VotingPage = () => {
       }}
     >
       <div className="flex flex-col items-center w-full max-w-4xl bg-blue-400 backdrop-filter bg-clip-padding backdrop-blur-md bg-opacity-15 border border-gray-100 rounded-lg shadow-lg p-4 mr-4">
-        <div className="flex justify-between items-center w-full mb-4">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-            Voting Options
+        <div className="flex flex-col justify-between items-center w-full mb-4">
+          <h1 className="text-2xl text-center font-bold text-gray-800 dark:text-gray-200">
+            ২০ ব্যাচ নামকরণ ভোট
           </h1>
           {/* <Button
             onClick={() => setDarkMode(!darkMode)}
@@ -299,6 +306,14 @@ const VotingPage = () => {
           >
             Toggle {darkMode ? "Light" : "Dark"} Mode
           </Button> */}
+
+          <p className="text-gray-700 dark:text-gray-300 text-center p-2">
+            আপনি এখানে আপনার পছন্দের নামগুলি ভোট দিতে পারেন। প্রতি ভোটকারী মাত্র
+            ৫টি নাম ভোট দিতে পারবেন।
+          </p>
+          <h2 className="text-lg text-center font-semibold text-gray-700 dark:text-gray-300">
+            already voted: {count}
+          </h2>
         </div>
         <Progress value={progress} className="w-full mb-4" />
         <div className="mb-4 text-gray-700 dark:text-gray-300 w-full">
@@ -322,9 +337,14 @@ const VotingPage = () => {
             })}
           </div>
         </div>
-        <ScrollArea className="h-[calc(100vh-350px)] w-full">
+        <ScrollArea className="h-[calc(100vh-450px)] w-full">
           {options.map((option, index) => (
-            <OptionItem key={option.id} option={option} index={index} />
+            <OptionItem
+              key={option.id}
+              option={option}
+              index={index}
+              count={count}
+            />
           ))}
         </ScrollArea>
       </div>
@@ -339,7 +359,7 @@ const VotingPage = () => {
           <InfoCircledIcon className="w-6 h-6" />
           <AlertTitle className="p-2">Max selections reached</AlertTitle>
           <AlertDescription>
-            You can only select up to {MAX_SELECTIONS} options
+            You can only select up to {MAX_SELECTIONS - count} options
           </AlertDescription>
         </Alert>
       )}

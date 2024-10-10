@@ -128,7 +128,7 @@ const AdminPage = () => {
       }
       try {
         const response = await axios.get(
-          "https://voting-app-backend.livelytree-3847346b.southeastasia.azurecontainerapps.io/name/result",
+          "https://voting-app-backend-updated.livelytree-3847346b.southeastasia.azurecontainerapps.io/name/result",
           {
             headers: {
               token: jwtToken,

@@ -132,16 +132,7 @@ async function authenticate(req,res,next){
   }
 };
 
-async function setAdmin(req,res){
-
-  const sid = req.query.sid ;
-
-  console.log("setting ",sid,"as admin");
-
-}
-
 module.exports = {
   verifyLink,
-  authenticate,
-  setAdmin
+  authenticate
 };

@@ -5,8 +5,8 @@ const adminController = require('../controller/adminController');
 adminRouter.route('/auth/:link')
 .get(adminController.verifyLink);
 
-adminRouter.route('/set')
-.get(adminController.setAdmin);
+// adminRouter.route('/set')
+// .get(adminController.setAdmin);
 
 
 module.exports = adminRouter;

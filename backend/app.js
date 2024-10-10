@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 require("dotenv").config();
 const adminRouter = require("./router/adminRouter");
 const nameRouter = require("./router/nameRouter");
@@ -10,13 +13,31 @@ app.use(cors());
 
 PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "localhost", () => {
-  console.log("listening on port " + PORT);
-});
+async function checkDatabaseConnection() {
+  try {
+    // Test if the database connection works
+    await prisma.$connect();
+    console.log('Database connected successfully');
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    process.exit(1); // Exit the process with failure
+  }
+}
 
-app.use("/name", nameRouter);
-app.use("/admin", adminRouter);
+async function startServer() {
+  await checkDatabaseConnection();
 
-app.use("/", (req, res) => {
-  res.json("welcome to voting");
-});
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log("listening on port " + PORT);
+  });
+
+  app.use("/name", nameRouter);
+  app.use("/admin", adminRouter);
+
+  app.use("/", (req, res) => {
+    res.json("welcome to voting");
+  });
+
+}
+
+startServer();

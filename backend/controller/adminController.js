@@ -4,6 +4,32 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const prisma = new PrismaClient();
 
+async function getUserVoteCount(sid) {
+  try {
+    // Find the user by their sid and count the number of names they have voted for
+    const user = await prisma.user.findUnique({
+      where: { sid: parseInt(sid) }, // sid is assumed to be an integer
+      select: {
+        _count: {
+          select: { votes: true } // Count the number of votes (names the user has voted for)
+        }
+      }
+    });
+
+    // If user not found, return a vote count of 0
+    if (!user) {
+      return 0;
+    }
+
+    // Return the number of votes the user has cast
+    return user._count.votes;
+
+  } catch (error) {
+    console.error('Error retrieving user vote count:', error);
+    throw new Error('Server error while retrieving vote count');
+  }
+}
+
 async function verifyLink(req, res) {
   const User = prisma.user;
 
@@ -57,11 +83,18 @@ async function verifyLink(req, res) {
     { expiresIn: "2h" } // Token will expire in 2 hours
   );
 
+  // we need to include another field in the response
+  
+  const voteCount = await getUserVoteCount(sid);
+
+  console.log(sid,"has cast",voteCount,"votes");
+
   // Send the token in the response body
   return res.status(200).json({
     success: true,
     token: token, // Sending the token here
     isAdmin: user.isAdmin,
+    count:voteCount
   });
 }
 
@@ -99,16 +132,7 @@ async function authenticate(req,res,next){
   }
 };
 
-async function setAdmin(req,res){
-
-  const sid = req.query.sid ;
-
-  console.log("setting ",sid,"as admin");
-
-}
-
 module.exports = {
   verifyLink,
-  authenticate,
-  setAdmin
+  authenticate
 };

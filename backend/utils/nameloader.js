@@ -26,7 +26,7 @@ async function readCsvFile(filePath) {
 }
 
 async function main() {
-  const filePath = "./utils/nameloader.js";
+  const filePath = "./utils/namelist.csv";
   const Names = prisma.name;
 
   // Read the CSV file to get the names array

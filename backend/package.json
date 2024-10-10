@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "prisma": {
-    "seed": "node ./utils/nameloader.js ./utils/userloader.js"
+    "seed": "node ./utils/nameloader.js && node ./utils/userloader.js"
   },
   "keywords": [],
   "author": "",

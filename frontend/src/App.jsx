@@ -307,9 +307,9 @@ const VotingPage = () => {
             Toggle {darkMode ? "Light" : "Dark"} Mode
           </Button> */}
 
-          <p className="text-gray-700 dark:text-gray-300 text-center p-2">
-            আপনি এখানে আপনার পছন্দের নামগুলি ভোট দিতে পারেন। প্রতি ভোটকারী মাত্র
-            ৫টি নাম ভোট দিতে পারবেন।
+          <p className="text-gray-800 dark:text-gray-300 text-center p-2">
+            আপনি এখানে আপনার পছন্দের নামগুলিতে ভোট দিতে পারবেন। প্রতি ভোটকারী
+            সর্বাধিক ৫টি নামে ভোট দিতে পারবেন।
           </p>
           <h2 className="text-lg text-center font-semibold text-gray-700 dark:text-gray-300">
             already voted: {count}

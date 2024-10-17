@@ -1,85 +1,3 @@
-// import { useEffect, useState } from "react";
-// import axios from "axios";
-// import { ScrollArea } from "@/components/ui/scroll-area";
-// import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-// import { InfoCircledIcon } from "@radix-ui/react-icons";
-// import { useVoteStore } from "@/store/useVoteStore";
-// import lightImg from "@/assets/list-of-2018-korean-language-films.jpg";
-
-// const AdminPage = () => {
-//   // const { jwtToken } = useVoteStore();
-//   const jwtToken = useVoteStore((state) => state.jwtToken);
-//   const [results, setResults] = useState([]);
-//   const [errorAlert, setErrorAlert] = useState(null);
-
-//   useEffect(() => {
-//     const fetchResults = async () => {
-//       if (!jwtToken) {
-//         setErrorAlert("Token is missing. Please log in.");
-//         return;
-//       }
-//       try {
-//         const response = await axios.get("http://localhost:5000/name/result", {
-//           headers: {
-//             token: jwtToken,
-//           },
-//         });
-//         setResults(response.data.data);
-//       } catch (error) {
-//         console.error("Error fetching voting results: ", error.response?.data);
-//         setErrorAlert("Error fetching voting results");
-//       }
-//     };
-
-//     fetchResults();
-//   }, [jwtToken]);
-
-//   if (!jwtToken) {
-//     return <div>Loading...Wait while we authenticate you</div>;
-//   }
-
-//   return (
-//     <div
-//       className="flex min-h-screen w-full flex-col items-center justify-center p-4 bg-fixed bg-cover bg-center bg-no-repeat"
-//       style={{
-//         backgroundImage: `url(${lightImg})`,
-//         minHeight: "100vh",
-//         minWidth: "100vw",
-//       }}
-//     >
-//       <div className="flex flex-col items-center w-full max-w-4xl bg-white/30 backdrop-blur-md rounded-lg shadow-lg p-6">
-//         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-//           Voting Results
-//         </h1>
-//         <ScrollArea className="h-[calc(100vh-350px)] w-full">
-//           {results.map((result) => (
-//             <div
-//               key={result.id}
-//               className="flex justify-between p-4 bg-white/20 mb-2 rounded-lg"
-//             >
-//               <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-//                 {result.name}
-//               </span>
-//               <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-//                 {result.votes}%
-//               </span>
-//             </div>
-//           ))}
-//         </ScrollArea>
-//       </div>
-//       {errorAlert && (
-//         <Alert className="fixed top-4 left-4 bg-red-500 text-white">
-//           <InfoCircledIcon className="w-6 h-6" />
-//           <AlertTitle className="p-2">Error</AlertTitle>
-//           <AlertDescription>{errorAlert}</AlertDescription>
-//         </Alert>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default AdminPage;
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -98,6 +16,7 @@ import {
   Title,
 } from "chart.js";
 import lightImg from "@/assets/list-of-2018-korean-language-films.jpg";
+import { Button } from "@/components/ui/button";
 
 // Register Chart.js components
 ChartJS.register(
@@ -110,11 +29,83 @@ ChartJS.register(
   Title
 );
 
+// Function to group users by department
+function groupUsersByDepartment(users) {
+  const departments = {
+    CSE: [],
+    EEE: [],
+    BME: [],
+    ME: [],
+    NAME: [],
+    IPE: [],
+    CE: [],
+    WRE: [],
+    MME: [],
+    CHE: [],
+    ARCH: [],
+    URP: [],
+  };
+
+  users.forEach((user) => {
+    const deptCode = String(user.sid).slice(2, 4); // Extract department code from sid
+    let deptName;
+
+    switch (deptCode) {
+      case "05":
+        deptName = "CSE";
+        break;
+      case "06":
+        deptName = "EEE";
+        break;
+      case "18":
+        deptName = "BME";
+        break;
+      case "10":
+        deptName = "ME";
+        break;
+      case "12":
+        deptName = "NAME";
+        break;
+      case "08":
+        deptName = "IPE";
+        break;
+      case "04":
+        deptName = "CE";
+        break;
+      case "16":
+        deptName = "WRE";
+        break;
+      case "11":
+        deptName = "MME";
+        break;
+      case "02":
+        deptName = "CHE";
+        break;
+      case "01":
+        deptName = "ARCH";
+        break;
+      case "15":
+        deptName = "URP";
+        break;
+      default:
+        deptName = "Unknown";
+    }
+
+    if (deptName) {
+      departments[deptName].push(user);
+    }
+  });
+
+  return departments;
+}
+
 const AdminPage = () => {
   const jwtToken = useVoteStore((state) => state.jwtToken);
   const [results, setResults] = useState([]);
   const [usersWithoutVotes, setUsersWithoutVotes] = useState([]);
   const [errorAlert, setErrorAlert] = useState(null);
+
+  const [activeTab, setActiveTab] = useState("CSE");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -149,6 +140,8 @@ const AdminPage = () => {
   if (!jwtToken) {
     return <div>Loading...Wait while we authenticate you</div>;
   }
+
+  const groupedUsers = groupUsersByDepartment(usersWithoutVotes);
 
   // Pagination logic: Slice the results based on current page
   const indexOfLastResult = currentPage * resultsPerPage;
@@ -204,7 +197,8 @@ const AdminPage = () => {
       {
         label: "Users Voting Status",
         data: [
-          results.reduce((acc, result) => acc + result.votes, 0),
+          // results.reduce((acc, result) => acc + result.votes, 0),
+          1215 - usersWithoutVotes.length,
           usersWithoutVotes.length,
         ],
         backgroundColor: ["rgba(54, 162, 235, 0.6)", "rgba(255, 99, 132, 0.6)"],
@@ -271,13 +265,31 @@ const AdminPage = () => {
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
             Users Who Haven&apos;t Voted:
           </h2>
+          <div className="mb-4">
+            {/* Tab Navigation */}
+            <div className="flex flex-wrap space-x-4">
+              {Object.keys(groupedUsers).map((dept) => (
+                <Button
+                  key={dept}
+                  className={`p-2 rounded-lg focus:outline-none focus:ring-0 active:ring-0 active:outline-none hover:bg-emerald-600/50 ${
+                    activeTab === dept
+                      ? "bg-emerald-400/70 text-white"
+                      : "bg-sky-400/70 text-gray-600"
+                  }`}
+                  onClick={() => setActiveTab(dept)}
+                >
+                  {dept}
+                </Button>
+              ))}
+            </div>
+          </div>
           <ScrollArea className="h-40">
-            {usersWithoutVotes.length === 0 ? (
+            {groupedUsers[activeTab].length === 0 ? (
               <p className="text-gray-800 dark:text-gray-200">
                 All users have voted!
               </p>
             ) : (
-              usersWithoutVotes.map((user) => (
+              groupedUsers[activeTab].map((user) => (
                 <div key={user.sid} className="flex justify-between mb-2">
                   <span className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                     User ID: {user.sid}

@@ -35,7 +35,7 @@ async function verifyLink(req, res) {
 
   const link = req.params.link;
 
-  console.log("link", link);
+  // console.log("link", link);
 
   // console.log(decryptLink(link));
   const { sid, email, password } = decryptLink(link);
@@ -47,7 +47,7 @@ async function verifyLink(req, res) {
     });
   }
 
-  console.log(sid, email, password);
+  // console.log(sid, email, password);
   //  decrypted_info  {
   //     sid: '2015030',
   //     email: '2015030@urp.buet.ac.bd',

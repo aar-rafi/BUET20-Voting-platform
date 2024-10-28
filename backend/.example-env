@@ -1,0 +1,5 @@
+BASE_URL = "https://buet20-batchname-voting.vercel.app"
+ENCRYPTION_KEY=
+DATABASE_URL=
+PORT=
+JWT_SECRET=
